@@ -97,10 +97,12 @@ https://github.com/dandavison/delta"
   (cond
    (magit-delta-mode
     (add-hook 'magit-diff-wash-diffs-hook #'magit-delta-apply-delta-to-diffs-maybe)
+    (add-hook 'magit-pre-display-buffer-hook #'magit-delta-clear-overlays)
     (setq magit-delta--magit-diff-refine-hunk--orig-value
           magit-diff-refine-hunk))
    ('deactivate
-    (remove-hook 'magit-diff-wash-diffs-hook #'magit-delta-apply-delta-to-diffs-maybe))))
+    (remove-hook 'magit-diff-wash-diffs-hook #'magit-delta-apply-delta-to-diffs-maybe)
+    (remove-hook 'magit-pre-display-buffer-hook #'magit-delta-clear-overlays))))
 
 (defun magit-delta-apply-delta-to-diffs-maybe ()
   "Apply delta to diffs in current magit buffer.
@@ -131,6 +133,10 @@ fall back to default diff highlighting."
                        face-remapping-alist)
              (--map (cons it 'default) magit-faces-to-override)))
       (magit-delta--call-delta-and-convert-ansi-escape-sequences))))
+
+(defun magit-delta-clear-overlays ()
+  "Clear overlays created by magit-delta-call-delta-and-convert-ansi-escape-sequences."
+  (remove-overlays (point-min) (point-max)))
 
 (defun magit-delta--call-delta-and-convert-ansi-escape-sequences ()
   "Call delta on buffer contents and convert ANSI escape sequences to overlays.
